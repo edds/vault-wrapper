@@ -1,7 +1,7 @@
 # vault-wrapper
 If you need a way to list all secrets from your Hashicorp Vault, this is the dirtiest and least fancy.
 
-The implementation downloads all secrets at a specific path, including children. 
+The implementation downloads all secrets at a specific path, including children.
 
 ## installation
 
@@ -21,29 +21,34 @@ npm install
 You'll need your Vault token in an environment variable. Sample `.env` file:
 ```sh
 VAULT_TOKEN=your-vault-token-here
+VAULT_URL=https://your.vault.url
+VAULT_PATH=/path/to/your/vault/root
 ```
 
-## running
 
+## usage
+
+To just return everything at the defined path:
 ```sh
-node app.js
+node index.js
+```
+
+Exclude paths can be used by setting the `VAULT_EXCLUDE` arg with a comma separated Express 4.x routes - supports wildcards:
+```sh
+VAULT_EXCLUDE="vault-exclude:(.*)/shared,(.*)/continuous-integration" node index.js
 ```
 
 With running commentary:
 ```sh
-DEBUG=vault-fetch node app.js
+DEBUG=vault-fetch node index.js
 ```
 
-## usage
-
+With pretty printed JSON:
 ```sh
-curl -H "vault-url:YOUR_VAULT_URL" http://localhost:3000/tree
+PRETTY_PRINT=true node index.js
 ```
 
-Optional: Exclude paths by sending an extra header with comma separated Express 4.x routes - supports wildcards `-H "vault-exclude:(.*)/shared,(.*)/continuous-integration"`
-
-Optional: Limit depth by sending an extra header `-H "vault-depth:4"` - won't go deeper than 4 nodes from the origin.
-
-## response
-
-JSON.
+Limit depth of search:.
+```sh
+VAULT_DEPTH=4 node index.js
+```
