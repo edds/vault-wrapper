@@ -24,7 +24,6 @@ You'll need your Vault token in an environment variable. Sample `.env` file:
 ```sh
 VAULT_TOKEN=your-vault-token-here
 VAULT_URL=https://your.vault.url
-VAULT_PATH=/path/to/your/vault/root
 ```
 
 
@@ -32,17 +31,17 @@ VAULT_PATH=/path/to/your/vault/root
 
 To just return everything at the defined path:
 ```sh
-node index.js
+node index.js --path="/v1/secrets"
 ```
 
 To search for a given string in one of your secrets. This will flatten your objects with dot notation so `{ one: { two: 'value' } }` becomes: `{ one.two: 'value' }`:
 ```sh
-node index.js my-secret-string
+node index.js --search="my-secret-string"
 ```
 
 Exclude paths can be used by setting the `VAULT_EXCLUDE` arg with a comma separated Express 4.x routes - supports wildcards:
 ```sh
-VAULT_EXCLUDE="vault-exclude:(.*)/shared,(.*)/continuous-integration" node index.js
+node index.js --exclude="(.*)/shared"
 ```
 
 With running commentary:
@@ -52,7 +51,7 @@ DEBUG=vault-fetch node index.js
 
 With pretty printed JSON:
 ```sh
-PRETTY_PRINT=true node index.js
+node index.js --pretty
 ```
 
 Limit depth of search:.

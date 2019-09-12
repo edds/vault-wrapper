@@ -1,36 +1,54 @@
 require('dotenv').config();
 
+var argv = require('yargs')
+	.options({
+		search: {
+			description: 'Search term to search secret values',
+			default: false,
+		},
+		path: {
+			description: 'Path to get from vault server. e.g. "/v1/secret/path',
+			default: '/',
+			alias: 'p',
+		},
+		exclude: {
+			description: 'Comma separated Express 4.x routes to exclude from search, e.g. "(.*)history(.*)"',
+			default: false,
+		},
+		pretty: {
+			description: 'Pretty print JSON response',
+			boolean: true,
+			default: false,
+		},
+		depth: {
+			decription: 'Depth of vault tree to search',
+			default: undefined,
+		},
+	}).argv;
+
 const { Vault } = require('./lib/vault');
 const { filterObjectSearchingValues } = require('./lib/object-search');
 
-let SEARCH_TERM = process.argv.slice(2)[0];
 
-let VAULT_URL = process.env.VAULT_URL;
-let VAULT_PATH = process.env.VAULT_PATH;
+const VAULT_URL = process.env.VAULT_URL;
 const VAULT_TOKEN = process.env.VAULT_TOKEN;
 
-const VAULT_EXCLUDE = process.env.VAULT_EXCLUDE;
-const VAULT_DEPTH = process.env.VAULT_DEPTH;
+const exclude = argv.exclude ? argv.exclude.split(',') : [];
+const depth = argv.depth ? parseInt(argv.depth, 10) : false;
 
-const exclude = VAULT_EXCLUDE ? VAULT_EXCLUDE.split(',') : false;
+const vault = new Vault(VAULT_URL, VAULT_TOKEN, { depth, exclude });
 
-const vault = new Vault(VAULT_URL, VAULT_TOKEN, { depth: VAULT_DEPTH, exclude });
+vault.fetchTree(argv.path).then(secrets => {
+	let output = secrets;
 
+	if(argv.search){
+		output = filterObjectSearchingValues(secrets, argv.search);
+	}
 
-vault.fetchTree(VAULT_PATH).then(secrets => {
-	if(SEARCH_TERM){
-		const matchingKeys = filterObjectSearchingValues(secrets, SEARCH_TERM);
-		if(process.env.PRETTY_PRINT === 'true'){
-			console.log(JSON.stringify(matchingKeys, null, 2));
-		} else {
-			console.log(JSON.stringify(matchingKeys));
-		}
+	if(argv.pretty){
+		console.log(JSON.stringify(output, null, 2));
 	} else {
-		if(process.env.PRETTY_PRINT === 'true'){
-			console.log(JSON.stringify(secrets, null, 2));
-		} else {
-			console.log(JSON.stringify(secrets));
-		}
+		console.log(JSON.stringify(output));
 	}
 	process.exit(0)
 }).catch(err => {
