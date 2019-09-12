@@ -30,8 +30,15 @@ const { Vault } = require('./lib/vault');
 const { filterObjectSearchingValues } = require('./lib/object-search');
 
 
+const missing = [];
 const VAULT_URL = process.env.VAULT_URL;
+if(!VAULT_URL) missing.push('VAULT_URL');
 const VAULT_TOKEN = process.env.VAULT_TOKEN;
+if(!VAULT_TOKEN) missing.push('VAULT_TOKEN');
+if(missing.length) {
+	console.error(`The ${missing.join(' and ')} environemnt variable(s) need to be set to use this script`);
+	process.exit(1);
+}
 
 const exclude = argv.exclude ? argv.exclude.split(',') : [];
 const depth = argv.depth ? parseInt(argv.depth, 10) : false;
